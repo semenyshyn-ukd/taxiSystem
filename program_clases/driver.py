@@ -3,13 +3,20 @@ from validators import validate_phone
 
 
 class Driver:
-    def __init__(self, driver_id, driver_name, car, phone, rating=0.0, ride_history=None):
-        self.driver_id = driver_id
+    __DRIVER_ID = 1
+
+    def __init__(self, driver_name, car, phone, rating=0.0, ride_history=None):
+        self.driver_id = Driver.__DRIVER_ID
         self.driver_name = driver_name
         self.car = car
         self.phone = phone
         self.rating = rating
         self.ride_history = ride_history if ride_history else []
+        Driver.increment_driver_id()
+
+    @classmethod
+    def increment_driver_id(cls):
+        cls.__DRIVER_ID += 1
 
     def to_dict(self):
         return {
@@ -23,14 +30,15 @@ class Driver:
 
     @staticmethod
     def from_dict(driver_dict):
-        return Driver(
-            driver_dict["driver_id"],
+        driver = Driver(
             driver_dict["driver_name"],
             driver_dict["car"],
             driver_dict["phone"],
             driver_dict.get("rating", 0.0),
             driver_dict.get("ride_history", [])
         )
+        driver.driver_id = driver_dict["driver_id"]
+        return driver
 
     @staticmethod
     def load_drivers():
@@ -75,11 +83,10 @@ class Driver:
                 print("Водій з таким номером телефону вже існує")
                 return
 
-        driver_id = len(drivers) + 1
-        new_driver = Driver(driver_id, driver_name, car, phone)
+        new_driver = Driver(driver_name, car, phone)
         drivers.append(new_driver)
         Driver.save_drivers(drivers)
-        print(f"Водій {driver_name} з ID {driver_id} успішно зареєстрований!")
+        print(f"Водій {driver_name} з ID {new_driver.driver_id} успішно зареєстрований!")
 
     @staticmethod
     def find_by_id(driver_id):

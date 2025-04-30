@@ -2,12 +2,19 @@ import json
 from validators import validate_phone
 
 class User:
-    def __init__(self, user_id, name, phone, balance=1000, ride_history=None):
-        self.user_id = user_id
+    __USER_ID = 1
+
+    def __init__(self, name, phone, balance=1000, ride_history=None):
+        self.user_id = User.__USER_ID
         self.name = name
         self.phone = phone
         self.balance = balance
         self.ride_history = ride_history if ride_history else []
+        User.increment_user_id()
+
+    @classmethod
+    def increment_user_id(cls):
+        cls.__USER_ID += 1
 
     def to_dict(self):
         return {
@@ -20,13 +27,14 @@ class User:
 
     @staticmethod
     def from_dict(user_dict):
-        return User(
-            user_dict["user_id"],
+        user = User(
             user_dict["name"],
             user_dict["phone"],
             user_dict.get("balance", 1000),
             user_dict.get("ride_history", [])
         )
+        user.user_id = user_dict["user_id"]
+        return user
 
     @staticmethod
     def load_users():
@@ -70,11 +78,10 @@ class User:
                 print("Користувач з таким номером телефону вже існує")
                 return
 
-        user_id = len(users) + 1
-        new_user = User(user_id, name, phone)
+        new_user = User(name, phone)
         users.append(new_user)
         User.save_users(users)
-        print(f"Користувач {name} з ID {user_id} успішно зареєстрований!")
+        print(f"Користувач {name} з ID {new_user.user_id} успішно зареєстрований!")
 
     @staticmethod
     def find_by_phone(phone):
@@ -120,15 +127,15 @@ class User:
     @staticmethod
     def user_report():
         print("\nЗвіт про користувача")
-        input_id = input("Введіть ID користувача: ")
+        user_id_input = input("Введіть ID користувача: ")
 
         try:
-            input_id = int(input_id)
+            user_id = int(user_id_input)
         except ValueError:
             print("ID користувача повинен бути числом")
             return
 
-        user = User.find_by_id(input_id)
+        user = User.find_by_id(user_id)
         if not user:
             print("Користувача з таким ID не знайдено")
             return

@@ -2,14 +2,16 @@ import json
 from datetime import datetime
 
 class Order:
+    __ORDER_ID = 1
+
     STATUS_NEW = "новий"
     STATUS_IN_PROGRESS = "в процесі"
     STATUS_COMPLETED = "завершений"
     STATUS_CANCELLED = "скасований"
 
-    def __init__(self, order_id, user_id, start_location, end_location, order_time, status=STATUS_NEW,
+    def __init__(self, user_id, start_location, end_location, order_time, status=STATUS_NEW,
                  assigned_driver_id=None, ride_id=None):
-        self.order_id = order_id
+        self.order_id = Order.__ORDER_ID
         self.user_id = user_id
         self.start_location = start_location
         self.end_location = end_location
@@ -17,6 +19,11 @@ class Order:
         self.status = status
         self.assigned_driver_id = assigned_driver_id
         self.ride_id = ride_id
+        Order.increment_order_id()
+
+    @classmethod
+    def increment_order_id(cls):
+        cls.__ORDER_ID += 1
 
     def to_dict(self):
         return {
@@ -32,8 +39,7 @@ class Order:
 
     @staticmethod
     def from_dict(order_dict):
-        return Order(
-            order_dict["order_id"],
+        order = Order(
             order_dict["user_id"],
             order_dict["start_location"],
             order_dict["end_location"],
@@ -42,6 +48,8 @@ class Order:
             order_dict.get("assigned_driver_id"),
             order_dict.get("ride_id")
         )
+        order.order_id = order_dict["order_id"]
+        return order
 
     @staticmethod
     def load_orders():
@@ -102,26 +110,24 @@ class Order:
         print(f"Час замовлення: {current_time}")
 
         orders = Order.load_orders()
-        order_id = len(orders) + 1
-        new_order = Order(order_id, user.user_id, start_location, end_location, current_time)
+        new_order = Order(user.user_id, start_location, end_location, current_time)
         orders.append(new_order)
         Order.save_orders(orders)
 
         print(f"Замовлення таксі для {user.name} успішно створено!")
-        print(f"ID замовлення: {order_id}")
+        print(f"ID замовлення: {new_order.order_id}")
 
     @staticmethod
     def update_order_status():
         from program_clases.user import User
         from program_clases.driver import Driver
-        from program_clases.ride import Ride
 
         print("\nОновлення статусу замовлення")
 
         orders = Order.load_orders()
         active_orders = []
         for o in orders:
-            if o.status != Order.STATUS_IN_COMPLETED and o.status != Order.STATUS_CANCELLED:
+            if o.status != Order.STATUS_COMPLETED and o.status != Order.STATUS_CANCELLED:
                 active_orders.append(o)
 
         if not active_orders:
@@ -188,7 +194,8 @@ class Order:
             driver = drivers[driver_index]
             order.assigned_driver_id = driver.driver_id
 
-            price = Ride.calculate_price(order.start_location, order.end_location)
+            from program_clases.ride import Ride
+            price = Ride.calculate_price()
 
             user = User.find_by_id(order.user_id)
             if not user:
@@ -200,9 +207,8 @@ class Order:
                 return
 
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
-            ride_id = len(orders)
+            rides = Ride.load_rides()
             new_ride = Ride(
-                ride_id,
                 order.start_location,
                 order.end_location,
                 price,
@@ -212,11 +218,10 @@ class Order:
                 driver.driver_id
             )
 
-            rides = Ride.load_rides()
             rides.append(new_ride)
             Ride.save_rides(rides)
 
-            order.ride_id = ride_id
+            order.ride_id = new_ride.ride_id
 
             if user.process_payment(price):
                 print(f"З рахунку користувача знято {price} грн")
@@ -224,7 +229,7 @@ class Order:
                 print("Помилка при обробці платежу")
                 return
 
-            print(f"Створено нову поїздку з ID: {ride_id}")
+            print(f"Створено нову поїздку з ID: {new_ride.ride_id}")
 
         for i, o in enumerate(orders):
             if o.order_id == order.order_id:

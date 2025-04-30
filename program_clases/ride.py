@@ -2,8 +2,10 @@ import json
 from datetime import datetime
 
 class Ride:
-    def __init__(self, ride_id, start_location, end_location, price, start_time, end_time, user_id, driver_id):
-        self.ride_id = ride_id
+    __RIDE_ID = 1
+
+    def __init__(self, start_location, end_location, price, start_time, end_time, user_id, driver_id):
+        self.ride_id = Ride.__RIDE_ID
         self.start_location = start_location
         self.end_location = end_location
         self.price = price
@@ -11,6 +13,11 @@ class Ride:
         self.end_time = end_time
         self.user_id = user_id
         self.driver_id = driver_id
+        Ride.increment_ride_id()
+
+    @classmethod
+    def increment_ride_id(cls):
+        cls.__RIDE_ID += 1
 
     def to_dict(self):
         return {
@@ -26,8 +33,7 @@ class Ride:
 
     @staticmethod
     def from_dict(ride_dict):
-        return Ride(
-            ride_dict["ride_id"],
+        ride = Ride(
             ride_dict["start_location"],
             ride_dict["end_location"],
             ride_dict["price"],
@@ -36,6 +42,8 @@ class Ride:
             ride_dict["user_id"],
             ride_dict["driver_id"]
         )
+        ride.ride_id = ride_dict["ride_id"]
+        return ride
 
     @staticmethod
     def load_rides():
@@ -60,7 +68,7 @@ class Ride:
             json.dump(rides_data, file, ensure_ascii=False, indent=2)
 
     @staticmethod
-    def calculate_price(start_location, end_location):
+    def calculate_price():
         base_fare = 100.0
         return base_fare
 
@@ -75,20 +83,10 @@ class Ride:
     @staticmethod
     def complete_ride():
         print("\nЗавершення поїздки")
-        ride_id = input("Введіть ID поїздки: ")
-
-        rides = Ride.load_rides()
-        ride = None
-        ride_index = -1
-
-        for i, r in enumerate(rides):
-            if r.ride_id == ride_id:
-                ride = r
-                ride_index = i
-                break
+        ride_id_input = input("Введіть ID поїздки: ")
 
         try:
-            ride_id = int(ride_id)
+            ride_id = int(ride_id_input)
         except ValueError:
             print("ID поїздки повинен бути числом")
             return
@@ -102,15 +100,20 @@ class Ride:
             print("Ця поїздка вже завершена")
             return
 
-        from program_clases.user import User
-        from program_clases.driver import Driver
-        from program_clases.order import Order
-
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
         ride.end_time = current_time
 
-        rides[ride_index] = ride
+        rides = Ride.load_rides()
+        for i, r in enumerate(rides):
+            if r.ride_id == ride_id:
+                rides[i] = ride
+                break
+
         Ride.save_rides(rides)
+
+        from program_clases.user import User
+        from program_clases.driver import Driver
+        from program_clases.order import Order
 
         user = User.find_by_id(ride.user_id)
         if user:
