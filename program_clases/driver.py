@@ -16,9 +16,11 @@ class Driver:
 
     @classmethod
     def increment_driver_id(cls):
+        """Лічильник індексів, робить їх унікальними"""
         cls.__DRIVER_ID += 1
 
     def to_dict(self):
+        """Перетворення об'єкта в словник"""
         return {
             "driver_id": self.driver_id,
             "driver_name": self.driver_name,
@@ -30,6 +32,7 @@ class Driver:
 
     @staticmethod
     def from_dict(driver_dict):
+        """Створює новий об'єкт з словника"""
         driver = Driver(
             driver_dict["driver_name"],
             driver_dict["car"],
@@ -42,6 +45,7 @@ class Driver:
 
     @staticmethod
     def load_drivers():
+        """Підтягує всіх водіїв з словника"""
         try:
             with open("drivers.json", "r", encoding="utf-8") as file:
                 drivers_data = json.load(file)
@@ -55,6 +59,7 @@ class Driver:
 
     @staticmethod
     def save_drivers(drivers):
+        """Зберігає водіїв у словник"""
         drivers_data = []
         for driver in drivers:
             drivers_data.append(driver.to_dict())
@@ -64,6 +69,7 @@ class Driver:
 
     @staticmethod
     def register_driver():
+        """Реєестрація водія"""
         print("\nРеєстрація водія")
         driver_name = input("Введіть ім'я водія: ")
         phone = input("Введіть номер телефону водія (+380xxxxxxxxx): ")
@@ -90,6 +96,7 @@ class Driver:
 
     @staticmethod
     def find_by_id(driver_id):
+        """Пошук водія по індексу"""
         drivers = Driver.load_drivers()
         for driver in drivers:
             if driver.driver_id == driver_id:
@@ -97,6 +104,7 @@ class Driver:
         return None
 
     def add_ride(self, ride_id):
+        """Додає поїздку(ід) до історії водія і оновлє історію водія"""
         if ride_id not in self.ride_history:
             self.ride_history.append(ride_id)
             drivers = Driver.load_drivers()
@@ -108,6 +116,7 @@ class Driver:
         return False
 
     def update_rating(self, new_rating):
+        """Оновлює рейтинг водія на основі даних від користувача"""
         if new_rating < 1 or new_rating > 5:
             return False
 
@@ -127,6 +136,7 @@ class Driver:
 
     @staticmethod
     def driver_report():
+        """Формує та виводить звіт про водія"""
         print("\nЗвіт водія")
         driver_id_input = input("Введіть ID водія: ")
 

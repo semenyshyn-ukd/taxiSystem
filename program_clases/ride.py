@@ -17,9 +17,11 @@ class Ride:
 
     @classmethod
     def increment_ride_id(cls):
+        """Лічильник індексів, робить їх унікальними"""
         cls.__RIDE_ID += 1
 
     def to_dict(self):
+        """Перетворення об'єкта в словник"""
         return {
             "ride_id": self.ride_id,
             "start_location": self.start_location,
@@ -33,6 +35,7 @@ class Ride:
 
     @staticmethod
     def from_dict(ride_dict):
+        """Створює новий об'єкт з словника"""
         ride = Ride(
             ride_dict["start_location"],
             ride_dict["end_location"],
@@ -47,6 +50,7 @@ class Ride:
 
     @staticmethod
     def load_rides():
+        """Підтягує всі поїздки з словника"""
         try:
             with open("rides.json", "r", encoding="utf-8") as file:
                 rides_data = json.load(file)
@@ -60,6 +64,7 @@ class Ride:
 
     @staticmethod
     def save_rides(rides):
+        """Зберігає поїздки у словник"""
         rides_data = []
         for ride in rides:
             rides_data.append(ride.to_dict())
@@ -69,11 +74,13 @@ class Ride:
 
     @staticmethod
     def calculate_price():
+        """Встановлює вартість поїздки"""
         base_fare = 100.0
         return base_fare
 
     @staticmethod
     def find_by_id(ride_id):
+        """Пошук за ід"""
         rides = Ride.load_rides()
         for ride in rides:
             if ride.ride_id == ride_id:
@@ -82,6 +89,7 @@ class Ride:
 
     @staticmethod
     def complete_ride():
+        """Завершити активну поїздку"""
         print("\nЗавершення поїздки")
         ride_id_input = input("Введіть ID поїздки: ")
 

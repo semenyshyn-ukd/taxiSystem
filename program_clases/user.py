@@ -14,9 +14,11 @@ class User:
 
     @classmethod
     def increment_user_id(cls):
+        """Лічильник індексів, робить їх унікальними"""
         cls.__USER_ID += 1
 
     def to_dict(self):
+        """Перетворення об'єкта в словник"""
         return {
             "user_id": self.user_id,
             "name": self.name,
@@ -27,6 +29,7 @@ class User:
 
     @staticmethod
     def from_dict(user_dict):
+        """Створює новий об'єкт з словника"""
         user = User(
             user_dict["name"],
             user_dict["phone"],
@@ -38,6 +41,7 @@ class User:
 
     @staticmethod
     def load_users():
+        """Підтягує всіх користувачів з словника"""
         try:
             with open("users.json", "r", encoding="utf-8") as file:
                 users_data = json.load(file)
@@ -51,6 +55,7 @@ class User:
 
     @staticmethod
     def save_users(users):
+        """Зберігає користувачів у словник"""
         users_data = []
         for user in users:
             users_data.append(user.to_dict())
@@ -60,6 +65,7 @@ class User:
 
     @staticmethod
     def register_user():
+        """Реєстрація користувача"""
         print("\nРеєстрація користувача")
         name = input("Введіть ім'я: ")
         phone = input("Введіть номер телефону (+380xxxxxxxxx): ")
@@ -84,15 +90,8 @@ class User:
         print(f"Користувач {name} з ID {new_user.user_id} успішно зареєстрований!")
 
     @staticmethod
-    def find_by_phone(phone):
-        users = User.load_users()
-        for user in users:
-            if user.phone == phone:
-                return user
-        return None
-
-    @staticmethod
     def find_by_id(user_id):
+        """Пошук за ід"""
         users = User.load_users()
         for user in users:
             if user.user_id == user_id:
@@ -100,6 +99,7 @@ class User:
         return None
 
     def add_ride(self, ride_id):
+        """Додавання поїздки(ід) до історії користувача"""
         if ride_id not in self.ride_history:
             self.ride_history.append(ride_id)
             users = User.load_users()
@@ -111,9 +111,11 @@ class User:
         return False
 
     def can_pay(self, price):
+        """Перевірка балансу"""
         return self.balance >= float(price)
 
     def process_payment(self, price):
+        """Зняття оплати"""
         if self.can_pay(price):
             self.balance -= float(price)
             users = User.load_users()
@@ -126,6 +128,7 @@ class User:
 
     @staticmethod
     def user_report():
+        """Формування звіту користувача"""
         print("\nЗвіт про користувача")
         user_id_input = input("Введіть ID користувача: ")
 

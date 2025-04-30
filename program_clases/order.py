@@ -23,9 +23,11 @@ class Order:
 
     @classmethod
     def increment_order_id(cls):
+        """Лічильник індексів, робить їх унікальними"""
         cls.__ORDER_ID += 1
 
     def to_dict(self):
+        """Перетворення об'єкта в словник"""
         return {
             "order_id": self.order_id,
             "user_id": self.user_id,
@@ -39,6 +41,7 @@ class Order:
 
     @staticmethod
     def from_dict(order_dict):
+        """Створює новий об'єкт з словника"""
         order = Order(
             order_dict["user_id"],
             order_dict["start_location"],
@@ -53,6 +56,7 @@ class Order:
 
     @staticmethod
     def load_orders():
+        """Підтягує всі замовлення з словника"""
         try:
             with open("orders.json", "r", encoding="utf-8") as file:
                 orders_data = json.load(file)
@@ -66,6 +70,7 @@ class Order:
 
     @staticmethod
     def save_orders(orders):
+        """Зберігає замовлення у словник"""
         orders_data = []
         for order in orders:
             orders_data.append(order.to_dict())
@@ -75,6 +80,7 @@ class Order:
 
     @staticmethod
     def create_order():
+        """Створення та збереження замовлення"""
         from program_clases.user import User
 
         print("\nЗамовлення таксі")
@@ -119,6 +125,7 @@ class Order:
 
     @staticmethod
     def update_order_status():
+        """Оновлює статус згідно запиту користувача"""
         from program_clases.user import User
         from program_clases.driver import Driver
 
@@ -241,6 +248,7 @@ class Order:
 
     @staticmethod
     def update_order_status_by_ride(ride_id, new_status):
+        """Оновлення у разі завершення поїздки"""
         from program_clases.ride import Ride
 
         ride = Ride.find_by_id(ride_id)
@@ -257,6 +265,7 @@ class Order:
 
     @staticmethod
     def find_by_id(order_id):
+        """Пошук за ід"""
         orders = Order.load_orders()
         for order in orders:
             if order.order_id == order_id:

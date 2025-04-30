@@ -6,6 +6,7 @@ from program_clases.ride import Ride
 from program_clases.order import Order
 
 def initialize_files():
+    """Перевірка чи є відповідні файли і створює їх при відсутності"""
     files = ["users.json", "drivers.json", "orders.json", "rides.json"]
 
     for file in files:
