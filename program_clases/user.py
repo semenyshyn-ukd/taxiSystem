@@ -1,7 +1,7 @@
-import json
+from files import Files
 from validators import validate_phone
 
-class User:
+class User(Files):
     __USER_ID = 1
 
     def __init__(self, name, phone, balance=1000, ride_history=None):
@@ -40,30 +40,6 @@ class User:
         return user
 
     @staticmethod
-    def load_users():
-        """Підтягує всіх користувачів з словника"""
-        try:
-            with open("users.json", "r", encoding="utf-8") as file:
-                users_data = json.load(file)
-                users = []
-                for user_dict in users_data:
-                    user = User.from_dict(user_dict)
-                    users.append(user)
-                return users
-        except (FileNotFoundError, json.JSONDecodeError):
-            return []
-
-    @staticmethod
-    def save_users(users):
-        """Зберігає користувачів у словник"""
-        users_data = []
-        for user in users:
-            users_data.append(user.to_dict())
-
-        with open("users.json", "w", encoding="utf-8") as file:
-            json.dump(users_data, file, ensure_ascii=False, indent=2)
-
-    @staticmethod
     def register_user():
         """Реєстрація користувача"""
         print("\nРеєстрація користувача")
@@ -78,7 +54,7 @@ class User:
             print("Некоректний формат номера телефону. Використовуйте формат +380xxxxxxxxx")
             return
 
-        users = User.load_users()
+        users = User.load_from_file("users.json")
         for user in users:
             if user.phone == phone:
                 print("Користувач з таким номером телефону вже існує")
@@ -86,13 +62,13 @@ class User:
 
         new_user = User(name, phone)
         users.append(new_user)
-        User.save_users(users)
+        User.save_to_file(users, "users.json")
         print(f"Користувач {name} з ID {new_user.user_id} успішно зареєстрований!")
 
     @staticmethod
     def find_by_id(user_id):
         """Пошук за ід"""
-        users = User.load_users()
+        users = User.load_from_file("users.json")
         for user in users:
             if user.user_id == user_id:
                 return user
@@ -102,11 +78,11 @@ class User:
         """Додавання поїздки(ід) до історії користувача"""
         if ride_id not in self.ride_history:
             self.ride_history.append(ride_id)
-            users = User.load_users()
+            users = User.load_from_file("users.json")
             for i, user in enumerate(users):
                 if user.user_id == self.user_id:
                     users[i] = self
-                    User.save_users(users)
+                    User.save_to_file(users, "users.json")
                     return True
         return False
 
@@ -118,11 +94,11 @@ class User:
         """Зняття оплати"""
         if self.can_pay(price):
             self.balance -= float(price)
-            users = User.load_users()
+            users = User.load_from_file("users.json")
             for i, user in enumerate(users):
                 if user.user_id == self.user_id:
                     users[i] = self
-                    User.save_users(users)
+                    User.save_to_file(users, "users.json")
                     return True
         return False
 
@@ -154,7 +130,7 @@ class User:
 
         print("\nІсторія поїздок:")
         from program_clases.ride import Ride
-        rides = Ride.load_rides()
+        rides = Ride.load_from_file("rides.json")
 
         total_spent = 0
         ride_count = 0

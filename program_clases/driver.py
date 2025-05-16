@@ -1,8 +1,7 @@
-import json
 from validators import validate_phone
+from files import Files
 
-
-class Driver:
+class Driver(Files):
     __DRIVER_ID = 1
 
     def __init__(self, driver_name, car, phone, rating=0.0, ride_history=None):
@@ -44,30 +43,6 @@ class Driver:
         return driver
 
     @staticmethod
-    def load_drivers():
-        """Підтягує всіх водіїв з словника"""
-        try:
-            with open("drivers.json", "r", encoding="utf-8") as file:
-                drivers_data = json.load(file)
-                drivers = []
-                for driver_dict in drivers_data:
-                    driver = Driver.from_dict(driver_dict)
-                    drivers.append(driver)
-                return drivers
-        except (FileNotFoundError, json.JSONDecodeError):
-            return []
-
-    @staticmethod
-    def save_drivers(drivers):
-        """Зберігає водіїв у словник"""
-        drivers_data = []
-        for driver in drivers:
-            drivers_data.append(driver.to_dict())
-
-        with open("drivers.json", "w", encoding="utf-8") as file:
-            json.dump(drivers_data, file, ensure_ascii=False, indent=2)
-
-    @staticmethod
     def register_driver():
         """Реєестрація водія"""
         print("\nРеєстрація водія")
@@ -83,7 +58,7 @@ class Driver:
             print("Некоректний формат номера телефону. Використовуйте формат +380xxxxxxxxx")
             return
 
-        drivers = Driver.load_drivers()
+        drivers = Driver.load_from_file("drivers.json")
         for driver in drivers:
             if driver.phone == phone:
                 print("Водій з таким номером телефону вже існує")
@@ -91,27 +66,27 @@ class Driver:
 
         new_driver = Driver(driver_name, car, phone)
         drivers.append(new_driver)
-        Driver.save_drivers(drivers)
+        Driver.save_to_file(drivers, "drivers.json")
         print(f"Водій {driver_name} з ID {new_driver.driver_id} успішно зареєстрований!")
 
     @staticmethod
     def find_by_id(driver_id):
         """Пошук водія по індексу"""
-        drivers = Driver.load_drivers()
+        drivers = Driver.load_from_file("drivers.json")
         for driver in drivers:
             if driver.driver_id == driver_id:
                 return driver
         return None
 
     def add_ride(self, ride_id):
-        """Додає поїздку(ід) до історії водія і оновлє історію водія"""
+        """Додає поїздку(ід) до історії водія і оновлює історію водія"""
         if ride_id not in self.ride_history:
             self.ride_history.append(ride_id)
-            drivers = Driver.load_drivers()
+            drivers = Driver.load_from_file("drivers.json")
             for i, driver in enumerate(drivers):
                 if driver.driver_id == self.driver_id:
                     drivers[i] = self
-                    Driver.save_drivers(drivers)
+                    Driver.save_to_file(drivers, "drivers.json")
                     return True
         return False
 
@@ -126,11 +101,11 @@ class Driver:
         else:
             self.rating = round((self.rating * (ride_count - 1) + new_rating) / ride_count, 1)
 
-        drivers = Driver.load_drivers()
+        drivers = Driver.load_from_file("drivers.json")
         for i, driver in enumerate(drivers):
             if driver.driver_id == self.driver_id:
                 drivers[i] = self
-                Driver.save_drivers(drivers)
+                Driver.save_to_file(drivers, "drivers.json")
                 return True
         return False
 
@@ -162,7 +137,7 @@ class Driver:
 
         print("\nІсторія поїздок:")
         from program_clases.ride import Ride
-        rides = Ride.load_rides()
+        rides = Ride.load_from_file("rides.json")
 
         total_earnings = 0
         ride_count = 0

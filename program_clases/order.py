@@ -1,7 +1,7 @@
-import json
+from files import Files
 from datetime import datetime
 
-class Order:
+class Order(Files):
     __ORDER_ID = 1
 
     STATUS_NEW = "новий"
@@ -55,37 +55,13 @@ class Order:
         return order
 
     @staticmethod
-    def load_orders():
-        """Підтягує всі замовлення з словника"""
-        try:
-            with open("orders.json", "r", encoding="utf-8") as file:
-                orders_data = json.load(file)
-                orders = []
-                for order_dict in orders_data:
-                    order = Order.from_dict(order_dict)
-                    orders.append(order)
-                return orders
-        except (FileNotFoundError, json.JSONDecodeError):
-            return []
-
-    @staticmethod
-    def save_orders(orders):
-        """Зберігає замовлення у словник"""
-        orders_data = []
-        for order in orders:
-            orders_data.append(order.to_dict())
-
-        with open("orders.json", "w", encoding="utf-8") as file:
-            json.dump(orders_data, file, ensure_ascii=False, indent=2)
-
-    @staticmethod
     def create_order():
         """Створення та збереження замовлення"""
         from program_clases.user import User
 
         print("\nЗамовлення таксі")
 
-        users = User.load_users()
+        users = User.load_from_file("users.json")
         if not users:
             print("Немає зареєстрованих користувачів. Спочатку зареєструйте користувача.")
             return
@@ -115,10 +91,10 @@ class Order:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
         print(f"Час замовлення: {current_time}")
 
-        orders = Order.load_orders()
+        orders = Order.load_from_file("orders.json")
         new_order = Order(user.user_id, start_location, end_location, current_time)
         orders.append(new_order)
-        Order.save_orders(orders)
+        Order.save_to_file(orders, "orders.json")
 
         print(f"Замовлення таксі для {user.name} успішно створено!")
         print(f"ID замовлення: {new_order.order_id}")
@@ -131,7 +107,7 @@ class Order:
 
         print("\nОновлення статусу замовлення")
 
-        orders = Order.load_orders()
+        orders = Order.load_from_file("orders.json")
         active_orders = []
         for o in orders:
             if o.status != Order.STATUS_COMPLETED and o.status != Order.STATUS_CANCELLED:
@@ -180,7 +156,7 @@ class Order:
             return
 
         if new_status == Order.STATUS_IN_PROGRESS and not order.assigned_driver_id:
-            drivers = Driver.load_drivers()
+            drivers = Driver.load_from_file("drivers.json")
             if not drivers:
                 print("Немає доступних водіїв. Спочатку зареєструйте водія.")
                 return
@@ -214,7 +190,7 @@ class Order:
                 return
 
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
-            rides = Ride.load_rides()
+            rides = Ride.load_from_file("rides.json")
             new_ride = Ride(
                 order.start_location,
                 order.end_location,
@@ -226,7 +202,7 @@ class Order:
             )
 
             rides.append(new_ride)
-            Ride.save_rides(rides)
+            Ride.save_to_file(rides, "rides.json")
 
             order.ride_id = new_ride.ride_id
 
@@ -242,7 +218,7 @@ class Order:
             if o.order_id == order.order_id:
                 orders[i] = order
                 orders[i].status = new_status
-                Order.save_orders(orders)
+                Order.save_to_file(orders, "orders.json")
                 print(f"Статус замовлення успішно оновлено до '{new_status}'!")
                 return
 
@@ -255,18 +231,18 @@ class Order:
         if not ride:
             return False
 
-        orders = Order.load_orders()
+        orders = Order.load_from_file("orders.json")
         for i, order in enumerate(orders):
             if order.ride_id == ride_id:
                 orders[i].status = new_status
-                Order.save_orders(orders)
+                Order.save_to_file(orders, "orders.json")
                 return True
         return False
 
     @staticmethod
     def find_by_id(order_id):
         """Пошук за ід"""
-        orders = Order.load_orders()
+        orders = Order.load_from_file("orders.json")
         for order in orders:
             if order.order_id == order_id:
                 return order

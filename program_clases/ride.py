@@ -1,7 +1,7 @@
-import json
 from datetime import datetime
+from files import Files
 
-class Ride:
+class Ride(Files):
     __RIDE_ID = 1
 
     def __init__(self, start_location, end_location, price, start_time, end_time, user_id, driver_id):
@@ -49,30 +49,6 @@ class Ride:
         return ride
 
     @staticmethod
-    def load_rides():
-        """Підтягує всі поїздки з словника"""
-        try:
-            with open("rides.json", "r", encoding="utf-8") as file:
-                rides_data = json.load(file)
-                rides = []
-                for ride_dict in rides_data:
-                    ride = Ride.from_dict(ride_dict)
-                    rides.append(ride)
-                return rides
-        except (FileNotFoundError, json.JSONDecodeError):
-            return []
-
-    @staticmethod
-    def save_rides(rides):
-        """Зберігає поїздки у словник"""
-        rides_data = []
-        for ride in rides:
-            rides_data.append(ride.to_dict())
-
-        with open("rides.json", "w", encoding="utf-8") as file:
-            json.dump(rides_data, file, ensure_ascii=False, indent=2)
-
-    @staticmethod
     def calculate_price():
         """Встановлює вартість поїздки"""
         base_fare = 100.0
@@ -81,7 +57,7 @@ class Ride:
     @staticmethod
     def find_by_id(ride_id):
         """Пошук за ід"""
-        rides = Ride.load_rides()
+        rides = Ride.load_from_file("rides.json")
         for ride in rides:
             if ride.ride_id == ride_id:
                 return ride
@@ -111,13 +87,13 @@ class Ride:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M")
         ride.end_time = current_time
 
-        rides = Ride.load_rides()
+        rides = Ride.load_from_file("rides.json")
         for i, r in enumerate(rides):
             if r.ride_id == ride_id:
                 rides[i] = ride
                 break
 
-        Ride.save_rides(rides)
+        Ride.save_to_file(rides, "rides.json")
 
         from program_clases.user import User
         from program_clases.driver import Driver
